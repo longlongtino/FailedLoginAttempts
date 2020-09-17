@@ -1,0 +1,225 @@
+id: ec0c550d-387e-417a-8d04-b73c0e91340e
+version: 25
+name: 'UseCase - Failed User Login: Trigger'
+starttaskid: "0"
+tasks:
+  "0":
+    id: "0"
+    taskid: 5c72e553-3380-451b-813d-80c0a56f64e0
+    type: start
+    task:
+      id: 5c72e553-3380-451b-813d-80c0a56f64e0
+      version: -1
+      name: ""
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "1"
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 50
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "1":
+    id: "1"
+    taskid: a694effc-3e64-4b03-8213-4354db382e98
+    type: regular
+    task:
+      id: a694effc-3e64-4b03-8213-4354db382e98
+      version: -1
+      name: Query for Failed Users in past 60mins
+      description: Searches Splunk for events.
+      script: SplunkPy|||splunk-search
+      type: regular
+      iscommand: true
+      brand: SplunkPy
+    nexttasks:
+      '#none#':
+      - "7"
+    scriptarguments:
+      app: {}
+      batch_limit: {}
+      earliest_time: {}
+      event_limit: {}
+      latest_time: {}
+      query:
+        simple: host=ExchSrv index=main source="WinEventLog:Security" NOT "administrator"
+          NOT "GUEST" NOT "ITADMIN" (EventCode=4625 AND "Audit Failure" AND name="User
+          name is correct but the password is wrong") earliest=-60min | stats count
+          by user  | where  count >= 3  | table user
+      update_context: {}
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 195
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    fieldMapping:
+    - incidentfield: Username
+      output:
+        simple: ${Splunk.Result}
+    skipunavailable: false
+    quietmode: 0
+  "2":
+    id: "2"
+    taskid: f4cabfcb-6ebc-40c7-8a0b-9ca6f3d05f16
+    type: regular
+    task:
+      id: f4cabfcb-6ebc-40c7-8a0b-9ca6f3d05f16
+      version: -1
+      name: Set A list for Failed Login Users
+      description: Sets a value into the context with the given context key
+      scriptName: Set
+      type: regular
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "6"
+    scriptarguments:
+      append: {}
+      key:
+        simple: LoginFailedUsers
+      stringify: {}
+      value:
+        complex:
+          root: Splunk
+          accessor: Result.user
+          transformers:
+          - operator: Stringify
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 545
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "4":
+    id: "4"
+    taskid: 598dbfe5-f3f7-4027-8ecb-c9adf82529ad
+    type: title
+    task:
+      id: 598dbfe5-f3f7-4027-8ecb-c9adf82529ad
+      version: -1
+      name: End
+      type: title
+      iscommand: false
+      brand: ""
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 895
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "6":
+    id: "6"
+    taskid: 9c91414c-9075-4742-829d-7bb00e568691
+    type: playbook
+    task:
+      id: 9c91414c-9075-4742-829d-7bb00e568691
+      version: -1
+      name: 'UseCase - Failed User Login: Workflow for Each Users'
+      playbookName: 'UseCase - Failed User Login: Workflow for Each Users'
+      type: playbook
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "4"
+    scriptarguments:
+      LoginFailedUser:
+        simple: ${LoginFailedUsers}
+    separatecontext: true
+    loop:
+      iscommand: false
+      exitCondition: ""
+      wait: 1
+      max: 100
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 720
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "7":
+    id: "7"
+    taskid: 7e60f37f-77a6-410e-8055-ff904d342b89
+    type: condition
+    task:
+      id: 7e60f37f-77a6-410e-8055-ff904d342b89
+      version: -1
+      name: Verify Result is Not Empty
+      type: condition
+      iscommand: false
+      brand: ""
+    nexttasks:
+      "yes":
+      - "2"
+    separatecontext: false
+    conditions:
+    - label: "yes"
+      condition:
+      - - operator: isNotEmpty
+          left:
+            value:
+              simple: Splunk.Result
+            iscontext: true
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 370
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+view: |-
+  {
+    "linkLabelsPosition": {},
+    "paper": {
+      "dimensions": {
+        "height": 910,
+        "width": 380,
+        "x": 50,
+        "y": 50
+      }
+    }
+  }
+inputs: []
+outputs: []

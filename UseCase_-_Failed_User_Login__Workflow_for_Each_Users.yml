@@ -1,0 +1,880 @@
+id: 3c0d9c56-00e9-46cf-8869-8054036fe5d0
+version: 30
+name: 'UseCase - Failed User Login: Workflow for Each Users'
+starttaskid: "0"
+tasks:
+  "0":
+    id: "0"
+    taskid: 50ffa3af-4b54-4c17-852b-273407dbc6fb
+    type: start
+    task:
+      id: 50ffa3af-4b54-4c17-852b-273407dbc6fb
+      version: -1
+      name: ""
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "14"
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 592.5,
+          "y": 50
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "11":
+    id: "11"
+    taskid: 2bf24d98-9324-4b20-80a6-a311bd558c90
+    type: regular
+    task:
+      id: 2bf24d98-9324-4b20-80a6-a311bd558c90
+      version: -1
+      name: send-mail - Notify user the new password
+      description: Sends an email using EWS.
+      script: EWS Mail Sender|||send-mail
+      type: regular
+      iscommand: true
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "23"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: "Hi ${inputs.LoginFailedUser},\n\nYou new password is: \n${NEW_PASSWORD}"
+      cc: {}
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: You new password has been reset
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 1420
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "13":
+    id: "13"
+    taskid: 977bbf78-56e3-4b7f-8fa4-0a71f6a220d1
+    type: condition
+    task:
+      id: 977bbf78-56e3-4b7f-8fa4-0a71f6a220d1
+      version: -1
+      name: User confirmed the account activity?
+      type: condition
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#default#':
+      - "31"
+      "Yes":
+      - "16"
+    separatecontext: false
+    conditions:
+    - label: "Yes"
+      condition:
+      - - operator: containsString
+          left:
+            value:
+              simple: Please confirm that you attempted these logins.Answers.0
+            iscontext: true
+          right:
+            value:
+              simple: "Yes"
+    view: |-
+      {
+        "position": {
+          "x": 592.5,
+          "y": 370
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "14":
+    id: "14"
+    taskid: f914c4d6-ed5b-4a15-83f8-410aa871f54b
+    type: collection
+    task:
+      id: f914c4d6-ed5b-4a15-83f8-410aa871f54b
+      version: -1
+      name: send-mail - Ask user to confirm failed login attempts
+      description: Sends an email using EWS.
+      type: collection
+      iscommand: false
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "13"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          ${Splunk.Result.user}
+          Yes
+      cc: {}
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: '[Urgent] Please confirm that you attempted these logins'
+      to:
+        simple: ${Splunk.Result.[1].user}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 592.5,
+          "y": 195
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    message:
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+      subject:
+        simple: Please confirm that you attempted these logins
+      body:
+        simple: 'There were several failed login attempts with your user ID - ${Splunk.Result.[0].user}.
+          Please confirm these logins:'
+      methods:
+      - email
+      format: html
+      bcc: null
+      cc: null
+      timings:
+        retriescount: 2
+        retriesinterval: 360
+        completeafterreplies: 1
+    form:
+      questions:
+      - id: "0"
+        label: ""
+        labelarg:
+          simple: Were the login attempts made by you?
+        required: true
+        gridcolumns: []
+        defaultrows: []
+        type: singleSelect
+        options:
+        - ""
+        - "Yes"
+        - "No"
+        fieldassociated: ""
+        placeholder: ""
+        tooltip: ""
+        readonly: false
+      title: Please confirm that you attempted these logins
+      description: There were several failed login attempts with your user ID. Please
+        confirm that you attempted these logins.
+      sender: Your SOC team
+      expired: false
+      totalanswers: 0
+    formDisplay:
+      headerbackgroundcolor: ""
+      headerfontcolor: ""
+      sender: ACW - Failed Login
+      bodybackgroundcolor: ""
+      bodyfontcolor: ""
+      submitbuttonbackgroundcolor: ""
+      submitbuttonfontcolor: ""
+      submittext: ""
+    skipunavailable: false
+    quietmode: 0
+  "16":
+    id: "16"
+    taskid: 125bfddd-a33d-4ea2-8b37-2a3dcae69662
+    type: collection
+    task:
+      id: 125bfddd-a33d-4ea2-8b37-2a3dcae69662
+      version: -1
+      name: send-mail - Need to reset the password?
+      description: Sends an email using EWS.
+      type: collection
+      iscommand: false
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "17"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          ${Splunk.Result.user}
+          Yes
+      cc: {}
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: '[Urgent] Please confirm that you attempted these logins'
+      to:
+        simple: ${Splunk.Result.[1].user}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 165,
+          "y": 545
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    message:
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+      subject:
+        simple: Reset your account password
+      body:
+        simple: 'Hey ${inputs.LoginFailedUser},  forgot the password? Please confirm
+          if you need to reset the password by system:'
+      methods:
+      - email
+      format: ""
+      bcc: null
+      cc: null
+      timings:
+        retriescount: 2
+        retriesinterval: 360
+        completeafterreplies: 1
+    form:
+      questions:
+      - id: "0"
+        label: ""
+        labelarg:
+          simple: Request to reset your current password automatically?
+        required: true
+        gridcolumns: []
+        defaultrows: []
+        type: singleSelect
+        options:
+        - ""
+        - "Yes"
+        - "No"
+        fieldassociated: ""
+        placeholder: ""
+        tooltip: ""
+        readonly: false
+      title: Please confirm if you need to reset the password
+      description: New password will be sent via email if you confirm to reset password.
+      sender: Your SOC team
+      expired: false
+      totalanswers: 0
+    formDisplay:
+      headerbackgroundcolor: ""
+      headerfontcolor: ""
+      sender: ACW - Reset account password
+      bodybackgroundcolor: ""
+      bodyfontcolor: ""
+      submitbuttonbackgroundcolor: ""
+      submitbuttonfontcolor: ""
+      submittext: ""
+    skipunavailable: false
+    quietmode: 0
+  "17":
+    id: "17"
+    taskid: 474df809-f6da-4e51-84bc-312560ee2d1d
+    type: condition
+    task:
+      id: 474df809-f6da-4e51-84bc-312560ee2d1d
+      version: -1
+      name: User confirmed to reset password?
+      type: condition
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#default#':
+      - "21"
+      "Yes":
+      - "33"
+    separatecontext: false
+    conditions:
+    - label: "Yes"
+      condition:
+      - - operator: containsString
+          left:
+            value:
+              simple: Please confirm if you need to reset the password.Answers.0
+            iscontext: true
+          right:
+            value:
+              simple: "Yes"
+    view: |-
+      {
+        "position": {
+          "x": 165,
+          "y": 735
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "20":
+    id: "20"
+    taskid: 10d3f1c1-6ec4-4e6a-8fea-b4c0e122d470
+    type: regular
+    task:
+      id: 10d3f1c1-6ec4-4e6a-8fea-b4c0e122d470
+      version: -1
+      name: ad-set-new-password
+      description: Sets a new password for an Active Directory user. This command
+        requires a secure connection (SSL,TLS).
+      script: Active Directory Query v2|||ad-set-new-password
+      type: regular
+      iscommand: true
+      brand: Active Directory Query v2
+    nexttasks:
+      '#none#':
+      - "11"
+    scriptarguments:
+      base-dn:
+        simple: dc=lab,dc=local
+      password:
+        simple: ${NEW_PASSWORD}
+      username:
+        simple: ${inputs.LoginFailedUser}
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 1245
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "21":
+    id: "21"
+    taskid: 213b4703-af27-4331-8f0b-814623e87e9d
+    type: regular
+    task:
+      id: 213b4703-af27-4331-8f0b-814623e87e9d
+      version: -1
+      name: ad-expire-password
+      description: Expires the password of an Active Directory user.
+      script: Active Directory Query v2|||ad-expire-password
+      type: regular
+      iscommand: true
+      brand: Active Directory Query v2
+    nexttasks:
+      '#none#':
+      - "24"
+    scriptarguments:
+      base-dn:
+        simple: dc=lab,dc=local
+      username:
+        simple: ${inputs.LoginFailedUser}
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 460,
+          "y": 1030
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "23":
+    id: "23"
+    taskid: 7590a8f0-1eee-4f07-86cf-2a37d9b47d96
+    type: title
+    task:
+      id: 7590a8f0-1eee-4f07-86cf-2a37d9b47d96
+      version: -1
+      name: Playbook End
+      type: title
+      iscommand: false
+      brand: ""
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 695,
+          "y": 1595
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "24":
+    id: "24"
+    taskid: 46e70a27-f533-43d5-84c9-512c168b0541
+    type: regular
+    task:
+      id: 46e70a27-f533-43d5-84c9-512c168b0541
+      version: -1
+      name: send-mail - Provide contact for further assistance
+      description: Sends an email using EWS.
+      script: EWS Mail Sender|||send-mail
+      type: regular
+      iscommand: true
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "23"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          Hi ${inputs.LoginFailedUser},
+
+          You password has been expired. You must change password at next logon.
+          Email:     itadmin@lab.local
+          Hotline:  2388 2388
+
+          Regards,
+
+          IT Security Team
+      cc:
+        simple: itadmin@lab.local
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: You have rejected the password reset
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 460,
+          "y": 1245
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "26":
+    id: "26"
+    taskid: 4cb4ce69-83ed-473e-8e68-a0c7883cb8e3
+    type: regular
+    task:
+      id: 4cb4ce69-83ed-473e-8e68-a0c7883cb8e3
+      version: -1
+      name: ad-disable-account
+      description: Disables an Active Directory user account.
+      script: Active Directory Query v2|||ad-disable-account
+      type: regular
+      iscommand: true
+      brand: Active Directory Query v2
+    nexttasks:
+      '#none#':
+      - "30"
+    scriptarguments:
+      base-dn:
+        simple: dc=lab,dc=local
+      username:
+        simple: ${inputs.LoginFailedUser}
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 720
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "27":
+    id: "27"
+    taskid: de3ce4fa-6f76-413e-8f12-0c26446409a2
+    type: regular
+    task:
+      id: de3ce4fa-6f76-413e-8f12-0c26446409a2
+      version: -1
+      name: send-mail - Provide contact for further assistance
+      description: Sends an email using EWS.
+      script: EWS Mail Sender|||send-mail
+      type: regular
+      iscommand: true
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "23"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          Hi ${inputs.LoginFailedUser},
+
+          You password has been enabled. Please try to login again.
+
+          Please find assistance if you still cannot login into your account.
+          Email:     itadmin@lab.local
+          Hotline:  2388 2388
+
+          Regards,
+
+          IT Security Team
+      cc:
+        simple: itadmin@lab.local
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: Your account has been enabled
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 1420
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "28":
+    id: "28"
+    taskid: 62b1c64a-be82-4b57-80a2-cbcdb7c49231
+    type: regular
+    task:
+      id: 62b1c64a-be82-4b57-80a2-cbcdb7c49231
+      version: -1
+      name: ad-enable-account
+      description: Enables a previously disabled Active Directory account.
+      script: Active Directory Query v2|||ad-enable-account
+      type: regular
+      iscommand: true
+      brand: Active Directory Query v2
+    nexttasks:
+      '#none#':
+      - "27"
+    scriptarguments:
+      base-dn:
+        simple: dc=lab,dc=local
+      username:
+        simple: ${inputs.LoginFailedUser}
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 1245
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "29":
+    id: "29"
+    taskid: af77bef8-582a-4466-8b6e-e31d89ca3f97
+    type: condition
+    task:
+      id: af77bef8-582a-4466-8b6e-e31d89ca3f97
+      version: -1
+      name: Enable the account?
+      type: condition
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#default#':
+      - "23"
+      "Yes":
+      - "28"
+    separatecontext: false
+    conditions:
+    - label: "Yes"
+      condition:
+      - - operator: containsString
+          left:
+            value:
+              simple: Please confirm if the account is ready to enable after investigation.Answers.0
+            iscontext: true
+          right:
+            value:
+              simple: "Yes"
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 1070
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "30":
+    id: "30"
+    taskid: a192d639-b1ed-48f9-83b1-f15d73dcb3eb
+    type: collection
+    task:
+      id: a192d639-b1ed-48f9-83b1-f15d73dcb3eb
+      version: -1
+      name: send-mail to Security team - Please confirm if the account is ready to
+        enable after investigation.
+      description: Sends an email using EWS.
+      type: collection
+      iscommand: false
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "29"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          ${Splunk.Result.user}
+          Yes
+      cc: {}
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: '[Urgent] Please confirm that you attempted these logins'
+      to:
+        simple: ${Splunk.Result.[1].user}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 895
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    message:
+      to:
+        simple: tinoy@lab.local
+      subject:
+        simple: Please confirm if the account (${inputs.LoginFailedUser}) is ready
+          to enable after investigation.
+      body:
+        simple: Hey IT,  Please confirm if the account is ready to enable after investigation.
+      methods:
+      - email
+      format: ""
+      bcc: null
+      cc: null
+      timings:
+        retriescount: 2
+        retriesinterval: 360
+        completeafterreplies: 1
+    form:
+      questions:
+      - id: "0"
+        label: ""
+        labelarg:
+          simple: Enable the account?
+        required: true
+        gridcolumns: []
+        defaultrows: []
+        type: singleSelect
+        options:
+        - ""
+        - "Yes"
+        - "No"
+        fieldassociated: ""
+        placeholder: ""
+        tooltip: ""
+        readonly: false
+      title: Please confirm if the account (${inputs.LoginFailedUser}) is ready to
+        enable after investigation.
+      description: ""
+      sender: Your SOC team
+      expired: false
+      totalanswers: 0
+    formDisplay:
+      headerbackgroundcolor: ""
+      headerfontcolor: ""
+      sender: ACW - Reset account password
+      bodybackgroundcolor: ""
+      bodyfontcolor: ""
+      submitbuttonbackgroundcolor: ""
+      submitbuttonfontcolor: ""
+      submittext: ""
+    skipunavailable: false
+    quietmode: 0
+  "31":
+    id: "31"
+    taskid: 23cf91a2-41e5-4e33-80cc-b1cc370186f5
+    type: regular
+    task:
+      id: 23cf91a2-41e5-4e33-80cc-b1cc370186f5
+      version: -1
+      name: send-mail - Your account will be disabled due to abnormal password attempts
+      description: Sends an email using EWS.
+      script: EWS Mail Sender|||send-mail
+      type: regular
+      iscommand: true
+      brand: EWS Mail Sender
+    nexttasks:
+      '#none#':
+      - "26"
+    scriptarguments:
+      attachCIDs: {}
+      attachIDs: {}
+      attachNames: {}
+      bcc: {}
+      body:
+        simple: |-
+          Hi ${inputs.LoginFailedUser},
+
+          You account will be disabled due to abnormal password attempts.
+
+          We will let you know once the investigation was completed.
+
+          Regards,
+
+          IT Security Team
+      cc:
+        simple: itadmin@lab.local
+      htmlBody: {}
+      replyTo: {}
+      subject:
+        simple: Your account will be disabled due to abnormal password attempts
+      to:
+        simple: ${inputs.LoginFailedUser}@lab.local
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 1040,
+          "y": 545
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+  "33":
+    id: "33"
+    taskid: e521c369-f1d5-4f4c-8731-f9e46bca42ce
+    type: regular
+    task:
+      id: e521c369-f1d5-4f4c-8731-f9e46bca42ce
+      version: -1
+      name: Generate New Password
+      description: "This function generates a password and allows various parameters
+        to customize the properties of the password depending on the use case (e.g.
+        password complexity requirements).  The default behavior is to generate a
+        password of  *random length* including all four character classes (upper,
+        lower, digits, symbols) with at least five and at most ten characters per
+        class. \n\nThe min_* values all default to 0. This means that if the command
+        is executed in this way:\n!GeneratePassword max_lcase=10\nIt is possible that
+        a password of length zero could be generated. It is therefore recommended
+        to always include a min_* parameter that matches. \n\nThe debug parameter
+        will print certain properties of the command into the WarRoom for easy diagnostics."
+      scriptName: GeneratePassword
+      type: regular
+      iscommand: false
+      brand: ""
+    nexttasks:
+      '#none#':
+      - "20"
+    scriptarguments:
+      debug: {}
+      max_digits:
+        simple: "10"
+      max_lcase:
+        simple: "5"
+      max_symbols:
+        simple: "0"
+      max_ucase:
+        simple: "5"
+      min_digits:
+        simple: "2"
+      min_lcase:
+        simple: "5"
+      min_symbols:
+        simple: "0"
+      min_ucase:
+        simple: "3"
+    separatecontext: false
+    view: |-
+      {
+        "position": {
+          "x": 50,
+          "y": 1030
+        }
+      }
+    note: false
+    timertriggers: []
+    ignoreworker: false
+    skipunavailable: false
+    quietmode: 0
+view: |-
+  {
+    "linkLabelsPosition": {
+      "13_16_Yes": 0.43,
+      "17_21_#default#": 0.9,
+      "29_23_#default#": 0.3
+    },
+    "paper": {
+      "dimensions": {
+        "height": 1610,
+        "width": 1370,
+        "x": 50,
+        "y": 50
+      }
+    }
+  }
+inputs:
+- key: LoginFailedUser
+  value: {}
+  required: false
+  description: ""
+  playbookInputQuery: null
+outputs: []
+sourceplaybookid: c773c5fa-9e8d-4b03-82da-389207d41721
